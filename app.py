@@ -1,125 +1,90 @@
 import streamlit as st
-import random
 
-# --- 1. 페이지 설정 및 상태 관리 ---
-st.set_page_config(page_title="Streamlit Bee World", layout="centered")
-
-if 'page' not in st.session_state:
-    st.session_state.page = 'main'
-
-def change_page(target):
-    st.session_state.page = target
-
-# --- 2. 동적 꿀벌 스타일 생성 함수 ---
-def get_bee_styles(num_bees):
-    bee_css = ""
-    bee_html = ""
-    for i in range(num_bees):
-        top = random.randint(5, 85)
-        duration = random.uniform(10, 20)
-        delay = random.uniform(0, 5)
-        # fly-right(오른쪽행), fly-left(왼쪽행) 랜덤 결정
-        direction = random.choice(['fly-right', 'fly-left'])
-        
-        bee_css += f"""
-        .bee-{i} {{
-            top: {top}%;
-            animation: {direction} {duration:.1f}s linear infinite {delay:.1f}s;
-        }}
-        """
-        bee_html += f'<div class="bee bee-{i}">🐝</div>'
-    return bee_css, bee_html
-
-# 현재 페이지에 따라 벌 마리 수 결정 (메인 3마리, 환영 25마리)
-num = 25 if st.session_state.page == 'greeting' else 3
-dynamic_css, dynamic_html = get_bee_styles(num)
-
-# --- 3. CSS 주입 (디자인 및 애니메이션) ---
-# st.markdown의 unsafe_allow_html=True를 사용하여 스타일을 강제 주입합니다.
-st.markdown(f"""
+# 1. 배경색, 글자색 및 꿀벌 애니메이션 CSS 적용
+st.markdown("""
     <style>
-    /* 배경 및 기본 폰트 설정 */
-    .stApp {{
-        background-color: #FFD700 !important;
-        color: #000000 !important;
-        overflow: hidden;
-    }}
-
-    /* 텍스트 스타일링 */
-    .main-title {{
-        font-size: 50px;
-        font-weight: 800;
-        text-align: center;
-        margin-top: 100px;
+    /* 전체 배경색과 기본 글자색 설정 */
+    .stApp {
+        background-color: #FFD700; /* 밝은 노란색 */
         color: #000000;
-    }}
+        overflow-x: hidden; /* 벌이 화면 밖으로 나갈 때 가로 스크롤바 생김 방지 */
+    }
     
-    .sub-title {{
-        font-size: 24px;
-        text-align: center;
-        color: #333333;
-        margin-bottom: 50px;
-    }}
-
-    /* 버튼 중앙 정렬 스타일 */
-    .stButton > button {{
-        display: block;
-        margin: 0 auto;
-        background-color: #000000 !important;
-        color: #FFD700 !important;
-        border-radius: 10px;
-        padding: 10px 25px;
+    /* 모든 텍스트 요소를 검정색으로 강제 지정 */
+    h1, h2, h3, p, span, div, .stMarkdown {
+        color: #000000 !important;
+    }
+    
+    /* 버튼 텍스트와 테두리 색상 */
+    .stButton>button {
+        color: #000000;
+        border-color: #000000;
+        background-color: #FFFFFF; /* 버튼이 조금 더 잘 보이도록 흰색 배경 추가 */
         font-weight: bold;
-        border: none;
-    }}
+    }
 
-    /* 🐝 꿀벌 애니메이션 핵심 */
-    .bee {{
+    /* 🐝 날아다니는 꿀벌 애니메이션 설정 */
+    .bee {
         position: fixed;
-        font-size: 40px;
-        z-index: 1000;
-        pointer-events: none;
-        user-select: none;
-    }}
+        font-size: 35px; /* 벌 크기 */
+        z-index: 9999;
+        pointer-events: none; /* 클릭을 방해하지 않도록 설정 */
+    }
+    
+    /* 각 벌들의 시작 위치와 속도 다르게 설정 */
+    .bee1 { top: 15%; animation: fly-right 12s linear infinite; }
+    .bee2 { top: 45%; animation: fly-left 15s linear infinite 2s; left: -50px; }
+    .bee3 { top: 75%; animation: fly-right 10s linear infinite 1s; }
 
-    /* 오른쪽으로 갈 때: 🐝(기본 왼쪽)를 뒤집어서 오른쪽을 보게 함 */
-    @keyframes fly-right {{
-        0%   {{ left: -10%; transform: scaleX(-1); }}
-        100% {{ left: 110%; transform: scaleX(-1); }}
-    }}
-
-    /* 왼쪽으로 갈 때: 🐝 기본 상태 유지 */
-    @keyframes fly-left {{
-        0%   {{ left: 110%; transform: scaleX(1); }}
-        100% {{ left: -10%; transform: scaleX(1); }}
-    }}
-
-    /* 동적 벌 위치 스타일 삽입 */
-    {dynamic_css}
+    /* 왼쪽에서 오른쪽으로 둥둥 날아가는 애니메이션 */
+    @keyframes fly-right {
+        0% { left: -10%; transform: translateY(0px) scaleX(1); }
+        25% { transform: translateY(-20px) scaleX(1); }
+        50% { transform: translateY(15px) scaleX(1); }
+        75% { transform: translateY(-10px) scaleX(1); }
+        100% { left: 110%; transform: translateY(0px) scaleX(1); }
+    }
+    
+    /* 오른쪽에서 왼쪽으로 둥둥 날아가는 애니메이션 (좌우 반전) */
+    @keyframes fly-left {
+        0% { left: 110%; transform: translateY(0px) scaleX(-1); } 
+        25% { transform: translateY(20px) scaleX(-1); }
+        50% { transform: translateY(-15px) scaleX(-1); }
+        75% { transform: translateY(10px) scaleX(-1); }
+        100% { left: -10%; transform: translateY(0px) scaleX(-1); }
+    }
     </style>
     
-    <div class="bee-container">
-        {dynamic_html}
-    </div>
+    <div class="bee bee1">🐝</div>
+    <div class="bee bee2">🐝</div>
+    <div class="bee bee3">🐝</div>
     """, unsafe_allow_html=True)
 
-# --- 4. 화면 콘텐츠 렌더링 ---
+# 2. 화면 전환을 위한 세션 상태(Session State) 초기화
+if 'show_greeting' not in st.session_state:
+    st.session_state.show_greeting = False
 
-if st.session_state.page == 'main':
-    # 메인 화면
-    st.markdown('<p class="main-title">🐝 안녕하세요 저는 Streamlit입니다 🐝</p>', unsafe_allow_html=True)
-    st.markdown('<p class="sub-title">꿀벌들이 평화롭게 날아다니고 있어요.</p>', unsafe_allow_html=True)
+# 버튼 클릭 시 상태를 변경하는 함수
+def go_to_greeting():
+    st.session_state.show_greeting = True
+
+def go_to_main():
+    st.session_state.show_greeting = False
+
+# 3. 메인 화면과 인사 화면 로직
+if not st.session_state.show_greeting:
+    # --- 메인 화면 ---
+    st.markdown("<h2 style='text-align: center;'>🐝 안녕하세요 저는 Streamlit입니다 🐝</h2>", unsafe_allow_html=True)
     
-    if st.button("나도 인사하기:"):
-        change_page('greeting')
-        st.rerun()
+    col1, col2, col3 = st.columns([1, 1, 1])
+    with col2:
+        st.button("나도 인사하기:", on_click=go_to_greeting, use_container_width=True)
 
 else:
-    # 인사 및 축하 화면
-    st.balloons() # 폭죽 효과
-    st.markdown('<p class="main-title">첫 웹페이지 제작을 축하해요! 🍯</p>', unsafe_allow_html=True)
-    st.markdown('<p class="sub-title">벌 떼가 축하하러 몰려왔습니다!</p>', unsafe_allow_html=True)
+    # --- 인사 화면 (버튼 클릭 후) ---
+    st.markdown("<h2 style='text-align: center;'>첫 웹페이지 제작을 축하해요! 🍯</h2>", unsafe_allow_html=True)
+    st.balloons() # 폭죽(풍선) 효과
     
-    if st.button("돌아가기"):
-        change_page('main')
-        st.rerun()
+    col1, col2, col3 = st.columns([1, 1, 1])
+    with col2:
+        st.button("돌아가기", on_click=go_to_main, use_container_width=True)
