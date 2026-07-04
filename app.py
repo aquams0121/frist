@@ -36,22 +36,22 @@ st.markdown("""
     .bee2 { top: 45%; animation: fly-left 15s linear infinite 2s; left: -50px; }
     .bee3 { top: 75%; animation: fly-right 10s linear infinite 1s; }
 
-    /* 왼쪽에서 오른쪽으로 둥둥 날아가는 애니메이션 */
+    /* 왼쪽에서 오른쪽으로 둥둥 날아가는 애니메이션 (우측을 보도록 scaleX(-1) 적용) */
     @keyframes fly-right {
-        0% { left: -10%; transform: translateY(0px) scaleX(1); }
-        25% { transform: translateY(-20px) scaleX(1); }
-        50% { transform: translateY(15px) scaleX(1); }
-        75% { transform: translateY(-10px) scaleX(1); }
-        100% { left: 110%; transform: translateY(0px) scaleX(1); }
+        0% { left: -10%; transform: translateY(0px) scaleX(-1); }
+        25% { transform: translateY(-20px) scaleX(-1); }
+        50% { transform: translateY(15px) scaleX(-1); }
+        75% { transform: translateY(-10px) scaleX(-1); }
+        100% { left: 110%; transform: translateY(0px) scaleX(-1); }
     }
     
-    /* 오른쪽에서 왼쪽으로 둥둥 날아가는 애니메이션 (좌우 반전) */
+    /* 오른쪽에서 왼쪽으로 둥둥 날아가는 애니메이션 (좌측을 보도록 scaleX(1) 적용) */
     @keyframes fly-left {
-        0% { left: 110%; transform: translateY(0px) scaleX(-1); } 
-        25% { transform: translateY(20px) scaleX(-1); }
-        50% { transform: translateY(-15px) scaleX(-1); }
-        75% { transform: translateY(10px) scaleX(-1); }
-        100% { left: -10%; transform: translateY(0px) scaleX(-1); }
+        0% { left: 110%; transform: translateY(0px) scaleX(1); } 
+        25% { transform: translateY(20px) scaleX(1); }
+        50% { transform: translateY(-15px) scaleX(1); }
+        75% { transform: translateY(10px) scaleX(1); }
+        100% { left: -10%; transform: translateY(0px) scaleX(1); }
     }
     </style>
     
