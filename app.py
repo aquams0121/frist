@@ -1,117 +1,125 @@
 import streamlit as st
 import random
 
-# 1. 화면 전환을 위한 세션 상태(Session State) 초기화
-if 'show_greeting' not in st.session_state:
-    st.session_state.show_greeting = False
+# --- 1. 페이지 설정 및 상태 관리 ---
+st.set_page_config(page_title="Streamlit Bee World", layout="centered")
 
-# 버튼 클릭 시 상태를 변경하는 함수
-def go_to_greeting():
-    st.session_state.show_greeting = True
+if 'page' not in st.session_state:
+    st.session_state.page = 'main'
 
-def go_to_main():
-    st.session_state.show_greeting = False
+def change_page(target):
+    st.session_state.page = target
 
-# 2. 벌들을 동적으로 생성하는 함수 (HTML + CSS)
-def generate_bees(num_bees):
+# --- 2. 동적 꿀벌 스타일 생성 함수 ---
+def get_bee_styles(num_bees):
     bee_css = ""
     bee_html = ""
-    
-    for i in range(1, num_bees + 1):
-        # 벌들의 위치, 날아가는 시간, 지연 시간을 랜덤하게 설정
-        top = random.randint(5, 90)
-        duration = random.uniform(8, 18)
+    for i in range(num_bees):
+        top = random.randint(5, 85)
+        duration = random.uniform(10, 20)
         delay = random.uniform(0, 5)
+        # fly-right(오른쪽행), fly-left(왼쪽행) 랜덤 결정
         direction = random.choice(['fly-right', 'fly-left'])
         
         bee_css += f"""
-        .bee{i} {{
+        .bee-{i} {{
             top: {top}%;
             animation: {direction} {duration:.1f}s linear infinite {delay:.1f}s;
         }}
         """
-        bee_html += f'<div class="bee bee{i}">🐝</div>\n'
-        
+        bee_html += f'<div class="bee bee-{i}">🐝</div>'
     return bee_css, bee_html
 
-# 3. 화면 상태에 따라 벌의 마리 수 결정
-# 메인 화면은 3마리, 인사 화면은 20마리
-num_bees = 20 if st.session_state.show_greeting else 3
-dynamic_bee_css, dynamic_bee_html = generate_bees(num_bees)
+# 현재 페이지에 따라 벌 마리 수 결정 (메인 3마리, 환영 25마리)
+num = 25 if st.session_state.page == 'greeting' else 3
+dynamic_css, dynamic_html = get_bee_styles(num)
 
-# 4. 공통 CSS 및 애니메이션 설정 (방향 수정 완료!)
+# --- 3. CSS 주입 (디자인 및 애니메이션) ---
+# st.markdown의 unsafe_allow_html=True를 사용하여 스타일을 강제 주입합니다.
 st.markdown(f"""
     <style>
-    /* 전체 배경색과 기본 글자색 설정 */
+    /* 배경 및 기본 폰트 설정 */
     .stApp {{
-        background-color: #FFD700;
-        color: #000000;
-        overflow-x: hidden; 
-    }}
-    
-    /* 텍스트 요소 색상 */
-    h1, h2, h3, p, span, div, .stMarkdown {{
+        background-color: #FFD700 !important;
         color: #000000 !important;
-    }}
-    
-    /* 버튼 스타일 */
-    .stButton>button {{
-        color: #000000;
-        border-color: #000000;
-        background-color: #FFFFFF;
-        font-weight: bold;
+        overflow: hidden;
     }}
 
-    /* 🐝 날아다니는 꿀벌 기본 설정 */
+    /* 텍스트 스타일링 */
+    .main-title {{
+        font-size: 50px;
+        font-weight: 800;
+        text-align: center;
+        margin-top: 100px;
+        color: #000000;
+    }}
+    
+    .sub-title {{
+        font-size: 24px;
+        text-align: center;
+        color: #333333;
+        margin-bottom: 50px;
+    }}
+
+    /* 버튼 중앙 정렬 스타일 */
+    .stButton > button {{
+        display: block;
+        margin: 0 auto;
+        background-color: #000000 !important;
+        color: #FFD700 !important;
+        border-radius: 10px;
+        padding: 10px 25px;
+        font-weight: bold;
+        border: none;
+    }}
+
+    /* 🐝 꿀벌 애니메이션 핵심 */
     .bee {{
         position: fixed;
-        font-size: 35px;
-        z-index: 9999;
+        font-size: 40px;
+        z-index: 1000;
         pointer-events: none;
+        user-select: none;
     }}
-    
-    /* 동적으로 생성된 벌들의 개별 설정 삽입 */
-    {dynamic_bee_css}
 
-    /* 벌 이모지(🐝)는 기본적으로 왼쪽을 봅니다.
-       오른쪽으로 날아갈 때(fly-right): scaleX(-1)로 우측을 보게 뒤집음 
-    */
+    /* 오른쪽으로 갈 때: 🐝(기본 왼쪽)를 뒤집어서 오른쪽을 보게 함 */
     @keyframes fly-right {{
-        0% {{ left: -10%; transform: translateY(0px) scaleX(-1); }}
-        25% {{ transform: translateY(-20px) scaleX(-1); }}
-        50% {{ transform: translateY(15px) scaleX(-1); }}
-        75% {{ transform: translateY(-10px) scaleX(-1); }}
-        100% {{ left: 110%; transform: translateY(0px) scaleX(-1); }}
+        0%   {{ left: -10%; transform: scaleX(-1); }}
+        100% {{ left: 110%; transform: scaleX(-1); }}
     }}
-    
-    /* 왼쪽으로 날아갈 때(fly-left): 원래 모습인 scaleX(1) 유지 
-    */
+
+    /* 왼쪽으로 갈 때: 🐝 기본 상태 유지 */
     @keyframes fly-left {{
-        0% {{ left: 110%; transform: translateY(0px) scaleX(1); }} 
-        25% {{ transform: translateY(20px) scaleX(1); }}
-        50% {{ transform: translateY(-15px) scaleX(1); }}
-        75% {{ transform: translateY(10px) scaleX(1); }}
-        100% {{ left: -10%; transform: translateY(0px) scaleX(1); }}
+        0%   {{ left: 110%; transform: scaleX(1); }}
+        100% {{ left: -10%; transform: scaleX(1); }}
     }}
+
+    /* 동적 벌 위치 스타일 삽입 */
+    {dynamic_css}
     </style>
     
-    {dynamic_bee_html}
+    <div class="bee-container">
+        {dynamic_html}
+    </div>
     """, unsafe_allow_html=True)
 
-# 5. 화면 렌더링 로직
-if not st.session_state.show_greeting:
-    # --- 메인 화면 ---
-    st.markdown("<br><br><h2 style='text-align: center;'>🐝 안녕하세요 저는 Streamlit입니다 🐝</h2><br>", unsafe_allow_html=True)
+# --- 4. 화면 콘텐츠 렌더링 ---
+
+if st.session_state.page == 'main':
+    # 메인 화면
+    st.markdown('<p class="main-title">🐝 안녕하세요 저는 Streamlit입니다 🐝</p>', unsafe_allow_html=True)
+    st.markdown('<p class="sub-title">꿀벌들이 평화롭게 날아다니고 있어요.</p>', unsafe_allow_html=True)
     
-    col1, col2, col3 = st.columns([1, 1, 1])
-    with col2:
-        st.button("나도 인사하기:", on_click=go_to_greeting, use_container_width=True)
+    if st.button("나도 인사하기:"):
+        change_page('greeting')
+        st.rerun()
 
 else:
-    # --- 인사 화면 (버튼 클릭 후) ---
-    st.markdown("<br><br><h2 style='text-align: center;'>첫 웹페이지 제작을 축하해요! 🍯</h2><br>", unsafe_allow_html=True)
+    # 인사 및 축하 화면
     st.balloons() # 폭죽 효과
+    st.markdown('<p class="main-title">첫 웹페이지 제작을 축하해요! 🍯</p>', unsafe_allow_html=True)
+    st.markdown('<p class="sub-title">벌 떼가 축하하러 몰려왔습니다!</p>', unsafe_allow_html=True)
     
-    col1, col2, col3 = st.columns([1, 1, 1])
-    with col2:
-        st.button("돌아가기", on_click=go_to_main, use_container_width=True)
+    if st.button("돌아가기"):
+        change_page('main')
+        st.rerun()
